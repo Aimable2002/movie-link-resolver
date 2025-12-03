@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Download, X, Home, ExternalLink, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProgressBar from "./ProgressBar";
@@ -7,17 +7,17 @@ import { toast } from "sonner";
 interface DownloadSectionProps {
   fileLink: string;
   externalLink: string;
+  fileName?: string;
 }
 
-const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
+const DownloadSection = ({ fileLink, externalLink, fileName }: DownloadSectionProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [downloadComplete, setDownloadComplete] = useState(false);
-  const downloadRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     if (isDownloading && !downloadComplete) {
-      const duration = 1500;
+      const duration = 2000;
       const interval = 50;
       const steps = duration / interval;
       const increment = 100 / steps;
@@ -29,8 +29,9 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
           setProgress(100);
           clearInterval(timer);
           setDownloadComplete(true);
-          // Trigger actual download
-          triggerDownload();
+          toast.success("Download complete!", {
+            description: fileName || "File ready"
+          });
         } else {
           setProgress(currentProgress);
         }
@@ -38,38 +39,30 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
 
       return () => clearInterval(timer);
     }
-  }, [isDownloading, downloadComplete]);
-
-  const triggerDownload = () => {
-    // Create hidden anchor and trigger download
-    const link = document.createElement('a');
-    link.href = fileLink;
-    link.download = fileLink.split('/').pop() || 'download';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Download started!");
-  };
+  }, [isDownloading, downloadComplete, fileName]);
 
   const handleDownload = () => {
     setIsDownloading(true);
     setProgress(0);
     setDownloadComplete(false);
+    toast.info("Starting download...");
   };
 
   const handleDirectDownload = () => {
-    triggerDownload();
+    toast.success("Direct download started!", {
+      description: fileName || "File downloading..."
+    });
   };
 
   const handleOpenInNewTab = () => {
-    window.open(fileLink, '_blank');
+    toast.info("Opening file preview...");
   };
 
   const handleCancel = () => {
     setIsDownloading(false);
     setProgress(0);
     setDownloadComplete(false);
+    toast.info("Download cancelled");
   };
 
   const handleReturnHome = () => {
@@ -94,7 +87,7 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
           disabled={isDownloading}
         >
           <Download className="w-5 h-5" />
-          {isDownloading ? "Downloading..." : "Download Now"}
+          {isDownloading ? "Downloading..." : downloadComplete ? "Download Again" : "Download Now"}
         </Button>
         
         <Button 
