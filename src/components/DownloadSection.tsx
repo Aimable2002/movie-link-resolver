@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { Download, X, Home } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Download, X, Home, ExternalLink, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProgressBar from "./ProgressBar";
+import { toast } from "sonner";
 
 interface DownloadSectionProps {
   fileLink: string;
@@ -11,11 +12,13 @@ interface DownloadSectionProps {
 const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [downloadComplete, setDownloadComplete] = useState(false);
+  const downloadRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
-    if (isDownloading) {
-      const duration = 1500; // 1.5 seconds
-      const interval = 50; // Update every 50ms
+    if (isDownloading && !downloadComplete) {
+      const duration = 1500;
+      const interval = 50;
       const steps = duration / interval;
       const increment = 100 / steps;
       
@@ -25,10 +28,9 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
         if (currentProgress >= 100) {
           setProgress(100);
           clearInterval(timer);
-          // Redirect after completion
-          setTimeout(() => {
-            window.location.href = fileLink;
-          }, 200);
+          setDownloadComplete(true);
+          // Trigger actual download
+          triggerDownload();
         } else {
           setProgress(currentProgress);
         }
@@ -36,16 +38,38 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
 
       return () => clearInterval(timer);
     }
-  }, [isDownloading, fileLink]);
+  }, [isDownloading, downloadComplete]);
+
+  const triggerDownload = () => {
+    // Create hidden anchor and trigger download
+    const link = document.createElement('a');
+    link.href = fileLink;
+    link.download = fileLink.split('/').pop() || 'download';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Download started!");
+  };
 
   const handleDownload = () => {
     setIsDownloading(true);
     setProgress(0);
+    setDownloadComplete(false);
+  };
+
+  const handleDirectDownload = () => {
+    triggerDownload();
+  };
+
+  const handleOpenInNewTab = () => {
+    window.open(fileLink, '_blank');
   };
 
   const handleCancel = () => {
     setIsDownloading(false);
     setProgress(0);
+    setDownloadComplete(false);
   };
 
   const handleReturnHome = () => {
@@ -57,10 +81,11 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
       <ProgressBar 
         isAnimating={isDownloading} 
         progress={progress} 
-        className="mb-8"
+        className="mb-6"
       />
       
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Main Download Buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <Button 
           variant="download" 
           size="xl" 
@@ -92,6 +117,41 @@ const DownloadSection = ({ fileLink, externalLink }: DownloadSectionProps) => {
           <Home className="w-5 h-5" />
           Return Home
         </Button>
+      </div>
+
+      {/* Alternative Download Options */}
+      <div className="glass-card-subtle rounded-xl p-4">
+        <p className="text-sm text-muted-foreground mb-3">Having trouble downloading? Try these options:</p>
+        <div className="flex flex-wrap gap-3">
+          <Button 
+            variant="download" 
+            size="sm"
+            onClick={handleDirectDownload}
+          >
+            Direct Download
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleOpenInNewTab}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Open in New Tab
+          </Button>
+          <Button 
+            variant="default" 
+            size="sm"
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Assisted Download
+          </Button>
+        </div>
+        <p className="text-xs text-amber-500 mt-3 flex items-center gap-1">
+          <span>⚠</span> Your browser may have issues with large downloads. Use "Assisted Download" for best results.
+        </p>
       </div>
     </div>
   );
