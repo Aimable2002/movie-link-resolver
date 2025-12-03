@@ -1,58 +1,32 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getMovieByLink, Movie } from "@/data/mockMovies";
 import MovieInfo from "@/components/MovieInfo";
 import DownloadSection from "@/components/DownloadSection";
 import AdBanner from "@/components/AdBanner";
 import { Loader2, AlertCircle } from "lucide-react";
 
-interface MovieData {
-  title: string;
-  file_link: string;
-  external_link: string;
-  file_size?: string;
-  server?: string;
-}
-
 const Index = () => {
-  const [movieData, setMovieData] = useState<MovieData | null>(null);
+  const [movieData, setMovieData] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMovieData = async () => {
+    const fetchMovieData = () => {
       try {
-        // Get the movie link from URL parameter (for testing) or use a default
+        // Get the movie link from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const movieLink = urlParams.get('link') || 'https://websiteA.com/movies/legend-01';
 
         console.log("Fetching movie data for:", movieLink);
 
-        const { data, error: fetchError } = await supabase.functions.invoke('resolve', {
-          headers: {
-            'x-movie-link': movieLink
-          }
-        });
+        const movie = getMovieByLink(movieLink);
 
-        console.log("Response:", data);
-
-        if (fetchError) {
-          console.error("Fetch error:", fetchError);
-          setError("Failed to connect to server");
+        if (!movie) {
+          setError("Movie not found");
           return;
         }
 
-        if (!data.success) {
-          setError(data.message || "Movie not found");
-          return;
-        }
-
-        setMovieData({
-          title: data.title,
-          file_link: data.file_link,
-          external_link: data.external_link,
-          file_size: data.file_size,
-          server: data.server
-        });
+        setMovieData(movie);
       } catch (err) {
         console.error("Error fetching movie data:", err);
         setError("An unexpected error occurred");
@@ -61,7 +35,8 @@ const Index = () => {
       }
     };
 
-    fetchMovieData();
+    // Simulate loading delay
+    setTimeout(fetchMovieData, 500);
   }, []);
 
   if (isLoading) {
