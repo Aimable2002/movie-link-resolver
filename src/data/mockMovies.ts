@@ -12,7 +12,7 @@ export const mockMovies: Movie[] = [
     id: "1",
     title: "The Journey of Legend 01",
     external_link: "https://websiteA.com/movies/legend-01",
-    file_link: "https://isatafilez.my/files/Newthi/Korea/THE_JOURNEY_OF_LEGEND_01.mp4",
+    file_link: "/downloads/THE_JOURNEY_OF_LEGEND_01.mp4",
     file_size: "1.2 GB",
     server: "Server 1"
   },
@@ -20,7 +20,7 @@ export const mockMovies: Movie[] = [
     id: "2",
     title: "The Journey of Legend 02",
     external_link: "https://websiteA.com/movies/legend-02",
-    file_link: "https://isatafilez.my/files/Newthi/Korea/THE_JOURNEY_OF_LEGEND_02.mp4",
+    file_link: "/downloads/THE_JOURNEY_OF_LEGEND_02.mp4",
     file_size: "1.4 GB",
     server: "Server 1"
   },
@@ -28,7 +28,7 @@ export const mockMovies: Movie[] = [
     id: "3",
     title: "Dragon's Path Episode 01",
     external_link: "https://websiteA.com/movies/dragons-path-01",
-    file_link: "https://isatafilez.my/files/Newthi/Korea/DRAGONS_PATH_01.mp4",
+    file_link: "/downloads/DRAGONS_PATH_01.mp4",
     file_size: "980 MB",
     server: "Server 2"
   }
